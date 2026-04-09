@@ -1,54 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPL Live - Star Sports 1 Hindi</title>
+    <title>Dev Nagri IPL Player</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.1/dash.all.min.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-        video { width: 90%; max-width: 800px; border: 2px solid #ed1c24; margin-top: 20px; }
-        .info { margin-top: 10px; color: #ccc; }
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .container { width: 100%; max-width: 800px; }
+        video { width: 100%; border: 2px solid #ed1c24; border-radius: 8px; }
+        .details { margin-top: 15px; text-align: center; }
+        h1 { color: #f5cc16; font-size: 24px; }
     </style>
 </head>
 <body>
 
-    <h2>IPL T20: Star Sports 1 Hindi</h2>
-    
+<div class="container">
+    <h1>IPL T20 - Star Sports 1 Hindi</h1>
     <video id="videoPlayer" controls></video>
-
-    <div class="info">
-        <p>Status: <span id="status">Loading...</span></p>
+    <div class="details">
+        <p id="status">Stream Status: Connecting...</p>
     </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const url = "https://livetv.hotstar.com/mp1/gec-india-1540065788/fa6a4f0005ef4f90ab24484d165b0aaf/index.mpd";
-            
-            // Your DRM Credentials
-            const protData = {
-                "org.w3.clearkey": {
-                    "clearkeys": {
-                        "81872faa1d6b45fa9045cdeb2e310000": "9b88168e61274587a471962c46b94675"
-                    }
+<script>
+    (function() {
+        // 1. Aapka Stream Link
+        const url = "https://livetv.hotstar.com/mp1/gec-india-1540065788/fa6a4f0005ef4f90ab24484d165b0aaf/index.mpd";
+
+        // 2. ClearKey DRM Setup
+        const drmConfig = {
+            "org.w3.clearkey": {
+                "clearkeys": {
+                    "81872faa1d6b45fa9045cdeb2e310000": "9b88168e61274587a471962c46b94675"
+                }
+            }
+        };
+
+        const video = document.querySelector("#videoPlayer");
+        const player = dashjs.MediaPlayer().create();
+
+        // 3. Headers setup (Hotstar requires these)
+        // Note: Browser security may block 'User-Agent' via JS. 
+        // This works best inside an Android WebView.
+        player.extend("RequestModifier", function () {
+            return {
+                modifyRequestHeader: function (xhr) {
+                    xhr.setRequestHeader("Cookie", "hdntl=exp=1775736068~acl=%2f*~id=c9b51016da49eb0898720b65c0d43ff2~data=hdntl~hmac=0504e34a0fc09cdc591cd14b78c9e7b67f14563f05caaeb00f79d789be041376");
+                    return xhr;
                 }
             };
+        }, true);
 
-            const video = document.querySelector("#videoPlayer");
-            const player = dashjs.MediaPlayer().create();
+        player.initialize(video, url, true);
+        player.setProtectionData(drmConfig);
 
-            player.initialize(video, url, true);
-            player.setProtectionData(protData);
-
-            player.on(dashjs.MediaPlayer.events.CAN_PLAY, function() {
-                document.getElementById("status").innerText = "Ready to Play";
-            });
-
-            player.on(dashjs.MediaPlayer.events.ERROR, function(e) {
-                document.getElementById("status").innerText = "Error: Stream expired or DRM issue";
-                console.error(e);
-            });
+        player.on(dashjs.MediaPlayer.events.CAN_PLAY, () => {
+            document.getElementById("status").innerText = "Status: Playing Live 🏏";
         });
-    </script>
+
+        player.on(dashjs.MediaPlayer.events.ERROR, (e) => {
+            document.getElementById("status").innerText = "Status: Link Expired or CORS Blocked";
+            console.error(e);
+        });
+    })();
+</script>
 </body>
 </html>
